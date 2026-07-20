@@ -1,0 +1,14 @@
+{
+  "name": "おむかえルート帖・月間版",
+  "short_name": "おむかえ月間",
+  "description": "放課後等デイサービスの送迎計画づくり・月間版。1ヶ月先までのお迎え（学校）とお送り（自宅）を計画して自動配車。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f4ea",
+  "theme_color": "#2c5077",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
