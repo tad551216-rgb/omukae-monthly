@@ -191,6 +191,14 @@ nav#tabbar button.on{color:var(--verm);font-weight:700;}
 .lst .nm .n2{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .lst .tail{flex:0 0 auto;font-size:.75rem;color:var(--indigo);text-align:right;line-height:1.4;}
 .lst.inactive{opacity:.5;}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--line);
+  border-radius:99px;padding:6px 8px 6px 13px;margin:0 6px 6px 0;font-size:.82rem;color:var(--ink);
+}
+.chip button{
+  background:var(--verm);color:#fff;border:none;width:18px;height:18px;border-radius:50%;
+  font-size:.68rem;padding:0;line-height:1;display:flex;align-items:center;justify-content:center;
+}
 
 /* ダイアログ */
 dialog{
@@ -242,12 +250,35 @@ dialog h2{margin-top:0;}
   <div id="routeArea"></div>
 </section>
 
+<!-- ============ ②b お送りサイン ============ -->
+<section class="tab" id="tab-sign">
+  <h2>お送りサイン <span id="signDateLabel" style="font-weight:400;color:var(--muted);font-size:.8rem;"></span></h2>
+  <p class="note">計画タブで選んだ日付の、お送り対象の児童が並びます（配車済みなら車両ごと）。お送りの際、保護者にこの画面でサインをもらってください。</p>
+  <div class="row" style="margin:8px 0;">
+    <div style="text-align:right;flex:1;font-size:.85rem;color:var(--indigo);" id="signCount"></div>
+  </div>
+  <div id="signList"></div>
+  <button class="wide verm" id="btnSignExport" style="margin-top:12px;">集約ファイルを書き出す（管理者へ）</button>
+  <button class="wide ghost" id="btnSignCleanup" style="margin-top:8px;">昨日までのサインを削除</button>
+  <p class="note">サインはこの端末に保存されます。管理者へ書き出したあとは古いサインを削除して、端末の容量を軽く保ってください（14日より前の分は自動で削除されます）。集約ファイルはAirDrop・クラウド等で渡し、<b>LINEのトークには載せない</b>でください。</p>
+</section>
+
 <!-- ============ ③児童 ============ -->
 <section class="tab" id="tab-kids">
   <h2>児童のリスト</h2>
   <p class="note">ニックネームと学校、利用曜日を登録すると、カレンダーのお迎え（学校ごとの人数）とお送り（自宅ごと）に自動で並びます。実名は入れないでください。お送りに使うご自宅の住所・座標は省略できます（省略時は既定の移動時間で見積もります）。</p>
   <div id="kidList"></div>
   <button class="wide" id="btnAddKid">＋ 児童を追加</button>
+
+  <h2>支援きろく帖との連携</h2>
+  <div class="card">
+    <p class="note" style="margin-top:0;">支援きろく帖の「マスター」（ニックネームと学校のみ・実名なし）を貼り付けると、児童データを<b>まるごと置き換え</b>ます（記録帖に無い児童は削除、学校の変更も反映。学校は更新・追加のみ）。月間版で登録した<b>自宅住所・座標・お送り時刻・メモは、同じニックネームの児童ならそのまま残ります</b>。</p>
+    <div class="row">
+      <button id="btnKidsToKiroku">マスターを書き出す</button>
+      <button class="ghost" id="btnKidsImport">マスターを読み込む</button>
+    </div>
+    <p class="note" id="kidsToKirokuResult" style="margin:8px 0 0;"></p>
+  </div>
 </section>
 
 <!-- ============ ④学校 ============ -->
@@ -270,6 +301,33 @@ dialog h2{margin-top:0;}
     </label>
     <button class="wide" id="btnDbCreate">この市区町村の学校データを作成</button>
     <p class="note" id="dbCreateStatus" style="margin:8px 0 0;"></p>
+  </div>
+
+  <h2>学校データを作成（地図から検索・従来方式）</h2>
+  <div class="card">
+    <p class="note" style="margin-top:0;">都道府県と市区町村を指定すると、その地域の小学校・中学校・支援学校などをまとめて学校リストに追加できます（地図データ OpenStreetMap を利用。インターネット接続が必要です）。住所は、地図データにあればそれを使い、なければ「都道府県＋市区町村」まではすぐに入ります。既にある学校は座標・住所だけ更新され、二重登録にはなりません。</p>
+    <label class="fld" for="genPref">都道府県</label>
+    <select id="genPref"></select>
+    <label class="fld" for="genCitySelect">市区町村（複数追加できます）</label>
+    <div class="row">
+      <select id="genCitySelect"><option value="">先に都道府県を選んでください</option></select>
+      <button class="small ghost shrink" id="btnAddCity">＋ 追加</button>
+    </div>
+    <p class="note" id="cityLoadStatus" style="margin:4px 0 0;"></p>
+    <details style="margin-top:6px;">
+      <summary style="font-size:.78rem;color:var(--indigo);cursor:pointer;">一覧にない場合は、名前を直接入力する</summary>
+      <div class="row" style="margin-top:6px;">
+        <input id="genCityInputManual" placeholder="例：〇〇市">
+        <button class="small ghost shrink" id="btnAddCityManual">＋ 追加</button>
+      </div>
+    </details>
+    <div id="cityChips" style="margin:8px 0 4px;"></div>
+    <label style="display:flex;align-items:flex-start;gap:8px;font-size:.83rem;color:var(--ink);margin:10px 0 4px;line-height:1.5;">
+      <input type="checkbox" id="genDetailAddr" style="width:auto;flex:0 0 auto;margin-top:3px;">
+      <span>番地までの詳しい住所も調べる（学校数が多いと数分かかります。チェックしないと「都道府県＋市区町村」までの住所になりますが、その分すぐ終わります）</span>
+    </label>
+    <button class="wide verm" id="btnGenSchools" style="margin-top:8px;">この地域の学校データを作成</button>
+    <p class="note" id="genStatus" style="margin-bottom:0;"></p>
   </div>
 </section>
 
@@ -328,7 +386,7 @@ dialog h2{margin-top:0;}
 
   <h2>このアプリについて</h2>
   <div class="card">
-    <p class="note" style="margin-bottom:0;">おむかえルート帖の月間版です。1ヶ月先までのお迎え（学校）・お送り（自宅）を計画して配車します。データはすべてこの端末の中（ブラウザ）だけに保存され、外部には送信されません。到着見込みは直線距離などからの目安で、実際の道路事情により前後します。ルート案内はGoogleマップに引き継いで表示します。60日より前の計画データは自動で片づけられます。<br>つくる手帖 月間版 v1</p>
+    <p class="note" style="margin-bottom:0;">おむかえルート帖の月間版です。1ヶ月先までのお迎え（学校）・お送り（自宅）を計画して配車します。データはすべてこの端末の中（ブラウザ）だけに保存され、外部には送信されません。到着見込みは直線距離などからの目安で、実際の道路事情により前後します。ルート案内はGoogleマップに引き継いで表示します。60日より前の計画データ・14日より前のサインは自動で片づけられます。<br>つくる手帖 月間版 v2</p>
   </div>
 </section>
 
@@ -337,6 +395,7 @@ dialog h2{margin-top:0;}
 <nav id="tabbar">
   <button data-tab="plan" class="on"><span class="ic">📅</span>計画</button>
   <button data-tab="route"><span class="ic">🗺</span>ルート</button>
+  <button data-tab="sign"><span class="ic">✍️</span>サイン</button>
   <button data-tab="kids"><span class="ic">👦</span>児童</button>
   <button data-tab="sch"><span class="ic">🏫</span>学校</button>
   <button data-tab="set"><span class="ic">⚙︎</span>設定</button>
@@ -432,10 +491,22 @@ dialog h2{margin-top:0;}
   </div>
 </dialog>
 
+<!-- サイン取得ダイアログ -->
+<dialog id="dlgOmkSign">
+  <h2 style="margin-top:0;" id="dlgOmkSignTitle" tabindex="-1">保護者サイン</h2>
+  <p class="note">本日のサービス提供と送迎をご確認のうえ、枠内にサインをお願いします。</p>
+  <canvas id="omkSignCanvas" style="width:100%;height:180px;background:#fff;border:1.5px solid var(--indigo);border-radius:10px;touch-action:none;display:block;"></canvas>
+  <div class="row" style="margin-top:12px;">
+    <button class="ghost small" id="btnOmkSignClear">書き直す</button>
+    <button class="ghost small" id="btnOmkSignCancel">やめる</button>
+    <button class="verm" id="btnOmkSignSave" style="flex:1;">この内容で確認</button>
+  </div>
+</dialog>
+
 <!-- 読み込みダイアログ -->
 <dialog id="impDlg">
   <h2 tabindex="-1">データの読み込み</h2>
-  <p class="note">「書き出してコピー」で作った文を貼り付けると、今のデータをまるごと置き換えます。</p>
+  <p class="note">「書き出してコピー」で作った文を貼り付けると、今のデータをまるごと置き換えます。支援きろく帖の<b>マスター（ニックネームと学校）</b>を貼り付けたときは、<b>児童データを置き換えます</b>（自宅住所・お送り時刻などは同じニックネームなら残ります）。学校の住所・座標だけのデータを貼り付けたときは、学校だけを更新・追加します。</p>
   <textarea id="impText" rows="6" placeholder="ここに貼り付け"></textarea>
   <div class="dlgBtns">
     <button class="ghost" id="impCancel">やめる</button>
@@ -475,6 +546,13 @@ function load(){
   s.vehicles.forEach(v=>{ if(!('active' in v)) v.active = true; });
   s.settings = Object.assign({}, DEFAULT_SETTINGS, s.settings||{});
   if(!s.days || typeof s.days !== 'object') s.days = {};
+  if(!s.signs || typeof s.signs !== 'object') s.signs = {};
+  // 14日より前のサインは自動削除（localStorage容量の保護）
+  try{
+    const slim = new Date(); slim.setDate(slim.getDate()-14);
+    const slimStr = fmtDate(slim);
+    Object.keys(s.signs).forEach(k=>{ if(k.slice(0,10) < slimStr) delete s.signs[k]; });
+  }catch(e){}
   if(!s.seq) s.seq = 1000;
   if(!s.selDate) s.selDate = fmtDate(new Date());
   if(!s.selDir) s.selDir = 'pick';
@@ -703,6 +781,7 @@ function showTab(name){
   document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('on', b.dataset.tab===name));
   document.querySelectorAll('section.tab').forEach(s=>s.classList.toggle('active', s.id==='tab-'+name));
   if(name==='route') renderRoute();
+  if(name==='sign') renderSign();
   if(name==='kids') renderKids();
   if(name==='sch') renderSchools();
   if(name==='set'){ renderVehicles(); renderSettings(); }
@@ -1591,6 +1670,461 @@ $('#btnDbCreate').addEventListener('click', async ()=>{
   }
 });
 
+/* ============ ②b お送りサイン ============ */
+function signKey(ds, nick){ return ds+'_'+nick; }
+function renderSign(){
+  const box = $('#signList');
+  if(!box) return;
+  const ds = state.selDate;
+  $('#signDateLabel').textContent = jpDate(ds);
+  if(!state.kids.length){
+    box.innerHTML = '<div class="card" style="text-align:center;color:var(--muted);font-size:.85rem;">児童がまだ登録されていません。<br>児童タブから登録するか、支援きろく帖の<br>「マスターを読み込む」から取り込んでください。</div>';
+    $('#signCount').textContent = '';
+    return;
+  }
+  const ent = effEntries(ds, 'drop');
+  const todayKids = activeKids().filter(k=>ent[k.id] && ent[k.id].on);
+  const list = todayKids.length ? todayKids : activeKids();
+  /* 児童 -> 車両名（この日のお送り配車から） */
+  const vname = {}; state.vehicles.forEach(v=>vname[v.id]=v.name);
+  const kidVehicle = {};
+  planEntriesFor(ds, 'drop').forEach(a=>a.stops.forEach(kid=>{ kidVehicle[kid] = vname[a.vid]||''; }));
+  const groups = {};
+  list.forEach(k=>{
+    const g = kidVehicle[k.id] || (todayKids.length ? '配車前' : 'すべての児童');
+    (groups[g] = groups[g] || []).push(k);
+  });
+  let html = '';
+  Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ja')).forEach(g=>{
+    html += '<div style="font-size:.8rem;font-weight:700;color:var(--indigo);margin:12px 2px 6px;">🚐 '+esc(g)+'（'+groups[g].length+'名）</div>';
+    groups[g].sort((a,b)=>a.nick.localeCompare(b.nick,'ja')).forEach(k=>{
+      const s = schoolById(k.schoolId);
+      const sg = state.signs[signKey(ds, k.nick)];
+      html += '<div class="card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;">'
+        +'<div style="flex:1;"><div style="font-size:.95rem;font-weight:700;">'+esc(k.nick)+'</div>'
+        +'<div style="font-size:.72rem;color:var(--muted);">'+(s?esc(shortName(s.name)):'')+'</div></div>'
+        +(sg
+          ? '<img src="'+sg.sign+'" style="height:38px;background:#fff;border:1px solid #ddd;border-radius:6px;" alt="サイン">'
+            +'<div style="font-size:.72rem;color:#3a7d44;font-weight:700;">✔ '+esc(sg.signAt)+'</div>'
+            +'<button class="small ghost" data-nick="'+esc(k.nick)+'">書直</button>'
+          : '<button class="small verm" data-nick="'+esc(k.nick)+'" style="padding:8px 16px;">✍ サイン</button>')
+        +'</div>';
+    });
+  });
+  if(todayKids.length && activeKids().length > todayKids.length){
+    html += '<p class="note" style="margin-top:10px;">※ この日のお送り対象でない児童 '+(activeKids().length - todayKids.length)+'名は表示していません。</p>';
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('button[data-nick]').forEach(b=>{
+    b.addEventListener('click', ()=>openOmkSign(b.dataset.nick));
+  });
+  const signed = list.filter(k=>state.signs[signKey(ds, k.nick)]).length;
+  $('#signCount').textContent = 'サイン '+signed+' / '+list.length;
+}
+/* サイン描画 */
+let omkSignNick = null, omkDrawn = false, omkDrawing = false;
+const omkCv = $('#omkSignCanvas');
+function openOmkSign(nick){
+  omkSignNick = nick; omkDrawn = false;
+  $('#dlgOmkSignTitle').textContent = nick + 'さん — 保護者サイン';
+  $('#dlgOmkSign').showModal();
+  $('#dlgOmkSignTitle').focus(); blurIfInput();
+  setTimeout(omkInitCanvas, 60);
+}
+function omkInitCanvas(){
+  const dpr = window.devicePixelRatio||1;
+  const w = omkCv.clientWidth, h = omkCv.clientHeight;
+  omkCv.width = w*dpr; omkCv.height = h*dpr;
+  const ctx = omkCv.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle = '#1e3a58'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  omkCv._ctx = ctx;
+  omkDrawn = false;
+}
+function omkPos(e){
+  const rc = omkCv.getBoundingClientRect();
+  const p = e.touches ? e.touches[0] : e;
+  return {x:p.clientX-rc.left, y:p.clientY-rc.top};
+}
+omkCv.addEventListener('touchstart', e=>{ e.preventDefault(); omkDrawing=true; const p=omkPos(e); omkCv._ctx.beginPath(); omkCv._ctx.moveTo(p.x,p.y); }, {passive:false});
+omkCv.addEventListener('touchmove', e=>{ if(!omkDrawing) return; e.preventDefault(); const p=omkPos(e); omkCv._ctx.lineTo(p.x,p.y); omkCv._ctx.stroke(); omkDrawn=true; }, {passive:false});
+omkCv.addEventListener('touchend', ()=>{ omkDrawing=false; });
+omkCv.addEventListener('mousedown', e=>{ omkDrawing=true; const p=omkPos(e); omkCv._ctx.beginPath(); omkCv._ctx.moveTo(p.x,p.y); });
+omkCv.addEventListener('mousemove', e=>{ if(!omkDrawing) return; const p=omkPos(e); omkCv._ctx.lineTo(p.x,p.y); omkCv._ctx.stroke(); omkDrawn=true; });
+window.addEventListener('mouseup', ()=>{ omkDrawing=false; });
+$('#btnOmkSignClear').addEventListener('click', omkInitCanvas);
+$('#btnOmkSignCancel').addEventListener('click', ()=> $('#dlgOmkSign').close());
+$('#btnOmkSignSave').addEventListener('click', ()=>{
+  if(!omkDrawn){ toast('サインが書かれていません'); return; }
+  const out = document.createElement('canvas');
+  out.width = 320; out.height = Math.round(320*omkCv.clientHeight/Math.max(1,omkCv.clientWidth)) || 180;
+  out.getContext('2d').drawImage(omkCv, 0, 0, out.width, out.height);
+  const n = new Date();
+  state.signs[signKey(state.selDate, omkSignNick)] = {
+    sign: out.toDataURL('image/png'),
+    signAt: String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')
+  };
+  save();
+  $('#dlgOmkSign').close();
+  renderSign();
+  toast('サインを保存しました');
+});
+/* 集約ファイル書き出し（shien-kiroku-daily・サインのみ） */
+$('#btnSignExport').addEventListener('click', ()=>{
+  const date = state.selDate;
+  const recs = [];
+  Object.keys(state.signs).forEach(k=>{
+    if(k.slice(0,10)!==date) return;
+    const sg = state.signs[k];
+    recs.push({nick:k.slice(11), sign:sg.sign, signAt:sg.signAt});
+  });
+  if(!recs.length){ toast('この日のサインがまだありません'); return; }
+  const payload = {app:'shien-kiroku-daily', ver:1, date, exported:new Date().toISOString(), source:'omukae-route', recs};
+  try{
+    const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'sign-daily-'+date+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 3000);
+    toast(recs.length+'名分のサインを書き出しました');
+  }catch(e){ toast('書き出せませんでした'); }
+});
+$('#btnSignCleanup').addEventListener('click', ()=>{
+  const date = fmtDate(new Date());
+  const old = Object.keys(state.signs).filter(k=>k.slice(0,10)<date);
+  if(!old.length){ toast('削除できる古いサインはありません'); return; }
+  if(!confirm('昨日までのサイン '+old.length+'件を削除します。\n管理者への書き出しは済んでいますか？')) return;
+  old.forEach(k=>delete state.signs[k]);
+  save(); renderSign();
+  toast(old.length+'件を削除しました');
+});
+
+/* ============ 支援きろく帖との連携（マスターの書き出し・読み込み） ============ */
+function classifySchoolKind(name){
+  if(/支援学校/.test(name)) return '支';
+  if(/義務教育学校/.test(name)) return '義';
+  if(/中学校/.test(name)) return '中';
+  if(/小学校/.test(name)) return '小';
+  return '他';
+}
+function schoolByName(name){
+  if(!name) return null;
+  return state.schools.find(s=>s.name===name)
+      || state.schools.find(s=>shortName(s.name)===shortName(name));
+}
+$('#btnKidsToKiroku').addEventListener('click', ()=>{
+  if(!state.kids.length){ toast('先に児童を登録してください'); return; }
+  const schoolName = id => { const s = schoolById(id); return s ? s.name : ''; };
+  const kidSchools = Array.from(new Set(state.kids.map(k=>schoolName(k.schoolId)).filter(Boolean)));
+  const names = Array.from(new Set(kidSchools.concat(state.schools.map(s=>s.name))));
+  const kindOf = n => (state.schools.find(s=>s.name===n)||{}).kind || '小';
+  const payload = {
+    app:'shien-kiroku-master', ver:1,
+    children: state.kids.map(k=>({nick:k.nick, school:schoolName(k.schoolId), days:Array.isArray(k.days)?k.days:[]})),
+    schools: names.map(n=>({name:n, kind:kindOf(n)}))
+  };
+  const text = '支援きろく帖マスター（ニックネームと学校のみ）\n' + JSON.stringify(payload);
+  const noSchool = state.kids.filter(k=>!k.schoolId).map(k=>k.nick);
+  copyText(text).then(()=>{
+    $('#kidsToKirokuResult').innerHTML =
+      '✔ コピーしました（児童<b>'+state.kids.length+'名</b>・学校<b>'+names.length+'校</b>）。'
+      +'支援きろく帖の「児童」タブ →「📥 マスターを取り込む」に貼り付けてください。'
+      + (noSchool.length ? '<br><b>学校未設定：</b>'+esc(noSchool.join('・'))+'（先に学校を設定しておくと連携が確実です）' : '');
+    toast('コピーしました。支援きろく帖に貼り付けてください');
+  });
+});
+$('#btnKidsImport').addEventListener('click', ()=>{
+  $('#impText').value = '';
+  $('#impDlg').showModal(); blurIfInput();
+});
+/* マスター取り込み：児童は置き換え（月間版で追加した自宅住所・座標・お送り時刻・メモは同じニックネームなら引き継ぐ） */
+function applyMaster(s){
+  const incoming = (s.children||[]).filter(c=>c && c.nick)
+    .map(c=>({nick:String(c.nick), school:c.school||'', days:Array.isArray(c.days)?c.days:[]}));
+  if(!incoming.length) return {ok:false};
+  const before = state.kids.map(k=>k.nick);
+  const incNicks = incoming.map(c=>c.nick);
+  const removed = state.kids.filter(k=>!incNicks.includes(k.nick)).map(k=>k.nick);
+  if(removed.length){
+    if(!confirm('児童マスターを置き換えます。\n\n'
+      +'現在 '+before.length+'名 → 取り込み後 '+incoming.length+'名\n'
+      +'この端末から消える児童（'+removed.length+'名）：\n'+removed.join('・')+'\n\n続けますか？')) return {ok:false, cancel:true};
+  }
+  /* 学校：マスターの schools と children の学校名を、無ければ登録・あれば区分を整える */
+  let schAdded = 0;
+  const ensureSchool = (name, kind)=>{
+    if(!name) return '';
+    let hit = schoolByName(name);
+    const inferred = classifySchoolKind(name);
+    const finalKind = (inferred !== '他') ? inferred : (['小','中','義','支','他'].includes(kind) ? kind : '他');
+    if(hit){
+      if(finalKind && finalKind!=='他') hit.kind = finalKind;
+      return hit.id;
+    }
+    state.seq = (state.seq||1000)+1;
+    hit = { id:'m'+state.seq, name, kind:finalKind||'他', addr:'', lat:null, lng:null, time:DEF_PICK_TIME };
+    state.schools.push(hit);
+    schAdded++;
+    return hit.id;
+  };
+  (s.schools||[]).forEach(sc=>{ if(sc && sc.name) ensureSchool(sc.name, sc.kind); });
+  /* 児童：置き換え。既存児童の月間版項目（住所・座標・お送り時刻・メモ）は引き継ぐ */
+  const oldByNick = {};
+  state.kids.forEach(k=>{ oldByNick[k.nick] = k; });
+  state.kids = incoming.map(c=>{
+    const old = oldByNick[c.nick];
+    return {
+      id: old ? old.id : ('k'+(++state.seq)),
+      nick: c.nick,
+      schoolId: ensureSchool(c.school, null),
+      days: c.days,
+      addr: old ? (old.addr||'') : '',
+      lat: old ? old.lat : null,
+      lng: old ? old.lng : null,
+      dropT: old ? (old.dropT||'') : '',
+      memo: old ? (old.memo||'') : '',
+      active: true
+    };
+  });
+  const kidsAdded = incoming.filter(c=>!before.includes(c.nick)).length;
+  save();
+  renderKids(); renderSchools(); renderCal(); renderDay();
+  return {ok:true, mode:'master', kidsAdded, kidsUpdated:incoming.length-kidsAdded, kidsRemoved:removed.length, schAdded};
+}
+
+/* ============ 学校データを作成（地図から検索・従来方式：OpenStreetMap） ============ */
+function escapeOverpassStr(s){ return String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"'); }
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.osm.jp/api/interpreter'
+];
+async function overpassFetch(q, timeoutMs){
+  timeoutMs = timeoutMs || 25000;
+  let lastErr = null;
+  for(const ep of OVERPASS_ENDPOINTS){
+    const ctrl = new AbortController();
+    const timer = setTimeout(()=>ctrl.abort(), timeoutMs);
+    try{
+      const res = await fetch(ep, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
+        body:'data='+encodeURIComponent(q),
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      if(res.status===429 || res.status===504){ lastErr = new Error('HTTP '+res.status); continue; }
+      if(!res.ok){ lastErr = new Error('HTTP '+res.status); continue; }
+      return await res.json();
+    }catch(e){ clearTimeout(timer); lastErr = e; }
+  }
+  throw lastErr || new Error('接続できませんでした');
+}
+(function initPrefSelect(){
+  const sel = $('#genPref');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">選択してください</option>'
+    + PREFS.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
+})();
+let genCities = [];
+let cityListCache = {};
+function renderCityChips(){
+  const box = $('#cityChips');
+  if(!box) return;
+  if(genCities.length===0){ box.innerHTML = ''; return; }
+  box.innerHTML = genCities.map((c,i)=>
+    '<span class="chip">'+esc(c)+' <button type="button" data-i="'+i+'" aria-label="削除">×</button></span>'
+  ).join('');
+  box.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      genCities.splice(parseInt(b.dataset.i,10), 1);
+      renderCityChips();
+    });
+  });
+}
+function addCityName(v){
+  v = (v||'').trim();
+  if(!v) return;
+  if(!genCities.includes(v)) genCities.push(v);
+  renderCityChips();
+}
+function fillCitySelect(names){
+  const sel = $('#genCitySelect');
+  sel.innerHTML = '<option value="">選択してください（'+names.length+'件）</option>'
+    + names.map(n=>'<option value="'+esc(n)+'">'+esc(n)+'</option>').join('');
+}
+async function loadCityList(pref){
+  const sel = $('#genCitySelect');
+  const status = $('#cityLoadStatus');
+  if(!pref){
+    sel.innerHTML = '<option value="">先に都道府県を選んでください</option>';
+    status.textContent = '';
+    return;
+  }
+  if(cityListCache[pref]){
+    fillCitySelect(cityListCache[pref]);
+    status.textContent = cityListCache[pref].length+'件の市区町村が見つかりました。';
+    return;
+  }
+  sel.innerHTML = '<option value="">読み込み中…</option>';
+  status.textContent = '市区町村の一覧を取得しています…';
+  try{
+    const q = '[out:json][timeout:40];\n'
+      + 'area["name"="'+escapeOverpassStr(pref)+'"]["admin_level"="4"]->.pref;\n'
+      + 'relation["admin_level"="7"](area.pref);\n'
+      + 'out tags;';
+    const data = await overpassFetch(q);
+    const names = Array.from(new Set((data.elements||[])
+      .map(el => el.tags && el.tags.name).filter(Boolean)))
+      .sort((a,b)=>a.localeCompare(b,'ja'));
+    if(names.length===0) throw new Error('empty');
+    cityListCache[pref] = names;
+    fillCitySelect(names);
+    status.textContent = names.length+'件の市区町村が見つかりました。見当たらないときは下から直接入力できます。';
+  }catch(e){
+    sel.innerHTML = '<option value="">一覧を取得できませんでした</option>';
+    status.textContent = '一覧を取得できませんでした（地図サーバーが混み合っている可能性があります）。少し時間をおいて再度試すか、下の「直接入力する」から市区町村名を入れてください。';
+  }
+}
+$('#genPref').addEventListener('change', ()=> loadCityList($('#genPref').value));
+$('#btnAddCity').addEventListener('click', ()=>{
+  const v = $('#genCitySelect').value;
+  if(!v){ toast('市区町村を選んでください'); return; }
+  addCityName(v);
+});
+$('#btnAddCityManual').addEventListener('click', ()=>{
+  const inp = $('#genCityInputManual');
+  addCityName(inp.value);
+  inp.value = '';
+});
+$('#genCityInputManual').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); $('#btnAddCityManual').click(); }
+});
+function buildOverpassQueryForCity(pref, city){
+  return '[out:json][timeout:40];\n'
+    + 'area["name"="'+escapeOverpassStr(pref)+'"]["admin_level"="4"]->.pref;\n'
+    + 'area["name"="'+escapeOverpassStr(city)+'"](area.pref)->.a;\n'
+    + 'nwr["amenity"="school"](area.a);\n'
+    + 'out center tags;';
+}
+function addrFromTags(tags){
+  if(!tags) return '';
+  if(tags['addr:full']) return tags['addr:full'];
+  const parts = [];
+  if(tags['addr:province']) parts.push(tags['addr:province']);
+  if(tags['addr:city']) parts.push(tags['addr:city']);
+  if(tags['addr:suburb']) parts.push(tags['addr:suburb']);
+  if(tags['addr:neighbourhood']) parts.push(tags['addr:neighbourhood']);
+  if(tags['addr:housenumber']) parts.push(tags['addr:housenumber']);
+  return parts.join('');
+}
+function simplifyReverseAddr(rjson, knownName){
+  if(!rjson) return '';
+  const a = rjson.address || {};
+  const parts = [];
+  if(a.state) parts.push(a.state);
+  if(a.city) parts.push(a.city);
+  else if(a.municipality) parts.push(a.municipality);
+  else if(a.town) parts.push(a.town);
+  else if(a.village) parts.push(a.village);
+  else if(a.county) parts.push(a.county);
+  if(a.city_district) parts.push(a.city_district);
+  if(a.suburb) parts.push(a.suburb);
+  if(a.quarter) parts.push(a.quarter);
+  if(a.neighbourhood) parts.push(a.neighbourhood);
+  if(a.road) parts.push(a.road);
+  if(a.house_number) parts.push(a.house_number);
+  const joined = parts.join('');
+  if(joined) return joined;
+  if(rjson.display_name){
+    let segs = rjson.display_name.split(',').map(s=>s.trim()).filter(Boolean);
+    if(segs.length && knownName && segs[0] === knownName) segs = segs.slice(1);
+    segs = segs.filter(s => !/^(日本|Japan)$/.test(s) && !/^\d{3}-?\d{4}$/.test(s));
+    return segs.reverse().join('');
+  }
+  return '';
+}
+$('#btnGenSchools').addEventListener('click', async ()=>{
+  const pref = $('#genPref').value;
+  const status = $('#genStatus');
+  if(!pref){ toast('都道府県を選んでください'); return; }
+  if(genCities.length===0){
+    addCityName($('#genCitySelect').value);
+    addCityName($('#genCityInputManual').value);
+    $('#genCityInputManual').value='';
+  }
+  if(genCities.length===0){ toast('市区町村を選ぶか、名前を入力してください'); return; }
+  const wantDetail = $('#genDetailAddr').checked;
+  $('#btnGenSchools').disabled = true;
+  const candidates = [];
+  let skipped = 0;
+  try{
+    for(let ci=0; ci<genCities.length; ci++){
+      const city = genCities[ci];
+      status.textContent = '検索中…（'+city+'　'+(ci+1)+'／'+genCities.length+'）';
+      const q = buildOverpassQueryForCity(pref, city);
+      const data = await overpassFetch(q, 45000);
+      const elements = (data && data.elements) || [];
+      elements.forEach(el=>{
+        const tags = el.tags || {};
+        const name = tags.name;
+        const lat = el.lat!=null ? el.lat : (el.center ? el.center.lat : null);
+        const lng = el.lon!=null ? el.lon : (el.center ? el.center.lon : null);
+        if(!name || lat==null || lng==null){ skipped++; return; }
+        const tagAddr = addrFromTags(tags);
+        candidates.push({
+          name, kind: classifySchoolKind(name),
+          addr: tagAddr || (pref+city),
+          needDetail: !tagAddr,
+          lat, lng
+        });
+      });
+    }
+    if(wantDetail){
+      const needAddr = candidates.filter(c=>c.needDetail);
+      for(let i=0; i<needAddr.length; i++){
+        status.textContent = '詳しい住所を調べています…（'+(i+1)+'／'+needAddr.length+'件）';
+        const c = needAddr[i];
+        try{
+          const rurl = 'https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat='+c.lat+'&lon='+c.lng+'&accept-language=ja&zoom=18';
+          const rres = await fetch(rurl, { headers:{ 'Accept':'application/json' } });
+          if(rres.ok){
+            const rjson = await rres.json();
+            const a = simplifyReverseAddr(rjson, c.name);
+            if(a) c.addr = a;
+          }
+        }catch(e){ /* この学校はあきらめて次へ */ }
+        if(i < needAddr.length-1) await sleep(1100);
+      }
+    }
+    let added = 0, updated = 0;
+    candidates.forEach(c=>{
+      const hit = state.schools.find(s=>s.name===c.name);
+      if(hit){
+        hit.lat = c.lat; hit.lng = c.lng;
+        if(c.addr) hit.addr = c.addr;
+        updated++;
+      }else{
+        state.seq = (state.seq||1000)+1;
+        state.schools.push({ id:'g'+state.seq, name:c.name, kind:c.kind, addr:c.addr||'', lat:c.lat, lng:c.lng, time:DEF_PICK_TIME });
+        added++;
+      }
+    });
+    save(); renderSchools(); renderCal();
+    status.textContent = '完了：'+added+'件追加・'+updated+'件更新'
+      + (skipped ? '（名前や座標が不明な'+skipped+'件はスキップしました）' : '')
+      + '。実際にお迎えのある学校だけに絞ると使いやすくなります。';
+    toast('学校データを作成しました（追加'+added+'・更新'+updated+'）');
+  }catch(e){
+    status.textContent = '取得できませんでした。通信環境をご確認のうえ、時間をおいて再度お試しください。';
+    toast('取得できませんでした');
+  }finally{
+    $('#btnGenSchools').disabled = false;
+  }
+});
+
 /* ============ ⑤設定 ============ */
 function renderVehicles(){
   $('#vehList').innerHTML = state.vehicles.length ? state.vehicles.map(v=>
@@ -1727,18 +2261,74 @@ $('#btnImport').addEventListener('click', ()=>{
 });
 $('#impCancel').addEventListener('click', ()=>$('#impDlg').close());
 function importState(raw){
-  const s = JSON.parse(raw);
-  if(!s || typeof s!=='object' || !Array.isArray(s.schools) || !Array.isArray(s.kids)) throw new Error('形式が違います');
-  localStorage.setItem(STORE_KEY, JSON.stringify(s));
-  state = load();
-  save();
-  renderCal(); renderDay(); renderKids(); renderSchools(); renderVehicles(); renderSettings();
+  const i = raw.indexOf('{');
+  if(i < 0) throw new Error('形式が違います');
+  const s = JSON.parse(raw.slice(i));
+  if(!s || typeof s!=='object') throw new Error('形式が違います');
+  /* 支援きろく帖マスター：児童を置き換え（月間版の自宅住所などは引き継ぐ） */
+  if(s.app==='shien-kiroku-master' && Array.isArray(s.children)){
+    const r = applyMaster(s);
+    if(r.cancel) return {cancel:true};
+    if(!r.ok) throw new Error('形式が違います');
+    return r;
+  }
+  /* フルバックアップ：まるごと置き換え */
+  if(Array.isArray(s.schools) && Array.isArray(s.kids)){
+    localStorage.setItem(STORE_KEY, JSON.stringify(s));
+    state = load();
+    save();
+    renderCal(); renderDay(); renderKids(); renderSchools(); renderVehicles(); renderSettings();
+    return {ok:true, mode:'full'};
+  }
+  /* 学校データだけの更新（他端末からの学校リスト）：学校情報だけ統合 */
+  if(Array.isArray(s.schools)){
+    let updated = 0, added = 0;
+    s.schools.forEach(inc=>{
+      if(!inc || !inc.name) return;
+      const inferred = classifySchoolKind(inc.name);
+      const incKind = ['小','中','義','支','他'].includes(inc.kind) ? inc.kind : null;
+      const finalKind = (inferred !== '他') ? inferred : incKind;
+      const hit = state.schools.find(sc => sc.name === inc.name);
+      if(hit){
+        if(finalKind) hit.kind = finalKind;
+        if(inc.addr) hit.addr = inc.addr;
+        if(inc.lat!=null) hit.lat = inc.lat;
+        if(inc.lng!=null) hit.lng = inc.lng;
+        if(inc.time) hit.time = inc.time;
+        updated++;
+      }else{
+        state.seq = (state.seq||1000)+1;
+        state.schools.push({
+          id:'u'+state.seq, name:inc.name, kind:finalKind||'他',
+          addr:inc.addr||'', lat:(inc.lat!=null?inc.lat:null), lng:(inc.lng!=null?inc.lng:null),
+          time:inc.time||DEF_PICK_TIME
+        });
+        added++;
+      }
+    });
+    save(); renderSchools(); renderCal();
+    return {ok:true, mode:'merge', updated, added};
+  }
+  throw new Error('形式が違います');
+}
+function importResultToast(r){
+  if(r && r.cancel){ toast('読み込みを中止しました'); return; }
+  if(!r || !r.ok){ toast('読み込めませんでした'); return; }
+  if(r.mode==='full') toast('読み込みました');
+  else if(r.mode==='master'){
+    let m = 'マスターを読み込みました（児童 '+(r.kidsAdded+r.kidsUpdated)+'名';
+    if(r.kidsRemoved) m += '・削除'+r.kidsRemoved+'名';
+    if(r.schAdded) m += '／学校 追加'+r.schAdded+'校';
+    m += '）';
+    toast(m);
+  }
+  else toast('学校データを更新しました（更新'+r.updated+'件・追加'+r.added+'件）');
 }
 $('#impDo').addEventListener('click', ()=>{
   try{
-    importState($('#impText').value);
-    $('#impDlg').close();
-    toast('読み込みました');
+    const r = importState($('#impText').value);
+    if(!(r && r.cancel)) $('#impDlg').close();
+    importResultToast(r);
   }catch(e){
     toast('読み込めませんでした。貼り付けた内容をご確認ください');
   }
@@ -1757,7 +2347,7 @@ $('#fileImport').addEventListener('change', ()=>{
   if(!f) return;
   const rd = new FileReader();
   rd.onload = ()=>{
-    try{ importState(rd.result); toast('読み込みました'); }
+    try{ importResultToast(importState(rd.result)); }
     catch(e){ toast('読み込めませんでした'); }
     $('#fileImport').value = '';
   };
