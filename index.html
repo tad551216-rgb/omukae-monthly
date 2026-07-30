@@ -168,19 +168,34 @@ nav#tabbar button.on{color:var(--verm);font-weight:700;}
 .dayChips label input{display:none;}
 
 /* ルート */
-.veh{border:1.5px solid var(--indigo);border-radius:10px;margin-bottom:12px;background:var(--card);overflow:hidden;}
-.veh .vh{background:var(--indigo);color:#fdfaf0;padding:7px 11px;font-size:.88rem;font-weight:700;display:flex;align-items:center;gap:8px;}
-.veh .vh .sub{font-weight:400;font-size:.72rem;opacity:.85;margin-left:auto;}
-.veh .stops{padding:7px 9px;}
-.stop{display:flex;align-items:center;gap:7px;padding:6px 3px;border-bottom:1px dashed var(--line);font-size:.85rem;}
-.stop:last-child{border-bottom:none;}
-.stop .no{flex:0 0 auto;color:var(--verm);font-weight:700;}
-.stop .snm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.stop .tim{flex:0 0 auto;font-variant-numeric:tabular-nums;font-size:.8rem;color:var(--indigo);}
-.stop .late{color:var(--verm);font-weight:700;}
-.stop .ops{flex:0 0 auto;display:flex;gap:3px;}
-.stop .ops button{font-size:.72rem;padding:3px 7px;background:#fff;color:var(--indigo);border:1px solid var(--line);border-radius:6px;}
-.stop .ops select{width:auto;font-size:.72rem;padding:3px 4px;}
+/* ルート表示（おむかえルート帖と同じ組み立て） */
+.vhead{display:flex;align-items:baseline;gap:8px;background:var(--indigo);color:#fdfaf0;border-radius:9px 9px 0 0;padding:8px 12px;margin-top:14px;flex-wrap:wrap;}
+.vhead .vn{font-weight:700;letter-spacing:.06em;}
+.vhead .vc{font-size:.76rem;opacity:.85;flex:1;}
+.vhead .vd{font-size:.78rem;font-weight:700;}
+.vhead .vd.late{color:#ffd9cf;}
+.vbody{border:1px solid var(--line);border-top:none;border-radius:0 0 9px 9px;background:var(--card);padding:9px 9px 4px;margin-bottom:14px;}
+.vtime{font-size:.88rem;font-weight:700;color:var(--indigo);font-variant-numeric:tabular-nums;background:#fff;border:1.5px dashed var(--indigo);border-radius:8px;padding:6px 10px;margin-bottom:8px;text-align:center;letter-spacing:.03em;}
+.leg{display:flex;justify-content:center;padding:0;}
+.leg span{color:var(--verm);font-size:.85rem;line-height:1.05;}
+.stop{display:flex;gap:9px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 9px;}
+.stop.term{border:none;background:transparent;padding:5px 9px;}
+.stop.term .no{background:var(--indigo);font-size:.66rem;}
+.stop .no{flex:0 0 28px;height:28px;border-radius:50%;background:var(--verm);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;margin-top:2px;}
+.stop .bd{flex:1;min-width:0;}
+.stop .bd .t{font-weight:700;color:var(--indigo);font-variant-numeric:tabular-nums;}
+.stop .bd .s{font-size:.9rem;}
+.stop .bd .m{font-size:.74rem;color:var(--muted);}
+.stop .bd .eta{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;}
+.stop .bd .eta b.late{color:var(--verm);}
+.stop .bd .warn{font-size:.76rem;color:var(--verm);font-weight:700;}
+.stop .mv{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;align-items:flex-end;}
+.stop .mv .ud{display:flex;gap:4px;}
+.stop .mv button{background:#fff;color:var(--indigo);border:1.5px solid var(--line);width:34px;height:26px;padding:0;font-size:.85rem;border-radius:6px;}
+.stop .mv button:disabled{opacity:.4;}
+.stop .mv select{font-size:.72rem;padding:3px 4px;width:auto;border-radius:6px;}
+.mapbtn{display:block;text-align:center;text-decoration:none;margin:8px 0 2px;background:var(--indigo);color:#fdfaf0;font-size:.82rem;font-weight:700;border-radius:8px;padding:9px 10px;}
+.vfoot{font-size:.78rem;color:var(--muted);padding:5px 4px 6px;font-variant-numeric:tabular-nums;}
 .warnbox{background:#fbeeea;border:1px solid var(--verm);border-radius:8px;padding:8px 10px;font-size:.8rem;color:#8f3320;margin-bottom:8px;}
 .okbox{background:#eef5e9;border:1px solid var(--green);border-radius:8px;padding:8px 10px;font-size:.8rem;color:#265c3d;margin-bottom:8px;}
 
@@ -383,6 +398,15 @@ dialog h2{margin-top:0;}
       <button class="ghost" id="btnImportFile">JSONを読み込む</button>
     </div>
     <input type="file" id="fileImport" accept=".json,application/json" style="display:none;">
+  </div>
+
+  <h2>お試しと、まっさらに戻す</h2>
+  <div class="card">
+    <p class="note" style="margin:0 0 8px;">架空の学校4校・児童6名・車2台が入ります。<b>いまのデータはすべて置き換わります。</b>使い方を試すとき、職員の方に説明するときにお使いください。</p>
+    <button class="wide" id="btnSample">🧪 サンプルデータを入れて試す</button>
+    <p class="note" style="margin:10px 0 8px;">児童のニックネームは<b>おむかえルート帖・支援きろく帖のサンプルと同じ</b>です。お送り先（自宅）の座標も入っていますので、往路・復路の両方を試せます。</p>
+    <button class="ghost" id="btnClearAll" style="color:var(--verm);border-color:var(--verm);">🗑 すべてのデータを消す</button>
+    <p class="note" style="margin:6px 0 0;">学校・児童・車両・事業所・計画・サインを、すべて消してまっさらに戻します。</p>
   </div>
 
   <h2>このアプリについて</h2>
@@ -872,6 +896,55 @@ function moveMonth(d){
   state.calMonth = nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0');
   save(); renderCal();
 }
+/* ===== お試し用のサンプルデータ =====
+   実在しない学校・児童です。ニックネームは、おむかえルート帖と
+   支援きろく帖のサンプルと同じにしてあります。 */
+function sampleState(){
+  const today = fmtDate(new Date());
+  const SC=[
+    {id:'s9001',name:'みどり小学校',      kind:'小',addr:'（見本）みどり町1-1', lat:34.5030,lng:135.4120,time:'15:00'},
+    {id:'s9002',name:'さくら小学校',      kind:'小',addr:'（見本）さくら台2-8', lat:34.4986,lng:135.4204,time:'15:20'},
+    {id:'s9003',name:'ひばり特別支援学校',kind:'支',addr:'（見本）ひばり丘3-5', lat:34.5074,lng:135.4271,time:'14:40'},
+    {id:'s9004',name:'あおば中学校',      kind:'中',addr:'（見本）あおば4-12', lat:34.4941,lng:135.4098,time:'15:40'}
+  ];
+  const K=[
+    {id:'k9001',nick:'はるくん', schoolId:'s9001',days:[1,2,3,4,5],addr:'（見本）みどり町2-4',  lat:34.5041,lng:135.4148,dropT:'17:30',memo:'卵アレルギーあり',            active:true},
+    {id:'k9002',nick:'さくちゃん',schoolId:'s9002',days:[1,3,5],    addr:'（見本）さくら台5-11',lat:34.4972,lng:135.4231,dropT:'17:00',memo:'大きな音に敏感',              active:true},
+    {id:'k9003',nick:'みなと',   schoolId:'s9003',days:[1,2,3,4,5],addr:'（見本）ひばり丘1-2', lat:34.5089,lng:135.4245,dropT:'17:30',memo:'車いす利用。リフト車で送迎', active:true},
+    {id:'k9004',nick:'ゆいちゃん',schoolId:'s9001',days:[2,4],      addr:'（見本）みどり町7-3', lat:34.5019,lng:135.4106,dropT:'16:30',memo:'',                          active:true},
+    {id:'k9005',nick:'そうた',   schoolId:'s9004',days:[1,2,3,4,5],addr:'（見本）あおば2-6',   lat:34.4958,lng:135.4079,dropT:'17:30',memo:'服薬あり（昼食後）',          active:true},
+    {id:'k9006',nick:'ひなちゃん',schoolId:'s9002',days:[3,5],      addr:'（見本）さくら台1-9', lat:34.4995,lng:135.4187,dropT:'17:00',memo:'',                          active:true}
+  ];
+  const V=[
+    {id:'v9001',name:'1号車（ワゴン）',cap:8,active:true},
+    {id:'v9002',name:'2号車（リフト）',cap:4,active:true}
+  ];
+  return {
+    facility:{name:'放課後デイ ひなたぼっこ', addr:'（見本）ひなた町5-3', lat:34.5008, lng:135.4165},
+    schools:SC, kids:K, vehicles:V,
+    settings:Object.assign({}, DEFAULT_SETTINGS),
+    days:{}, signs:{}, seq:9100,
+    selDate:today, selDir:'pick', calMonth:today.slice(0,7)
+  };
+}
+function redrawEverything(){
+  renderCal(); renderDay(); renderKids(); renderSchools(); renderVehicles(); renderSettings();
+}
+$('#btnSample').addEventListener('click', ()=>{
+  const has = (state.schools&&state.schools.length) || (state.kids&&state.kids.length);
+  if(has && !confirm('いまの学校・児童・車両・計画をすべて置き換えて、サンプルを入れます。\nよろしいですか？')) return;
+  localStorage.setItem(STORE_KEY, JSON.stringify(sampleState()));
+  state = load(); save(); redrawEverything();
+  toast('サンプルを入れました');
+});
+$('#btnClearAll').addEventListener('click', ()=>{
+  if(!confirm('学校・児童・車両・事業所・計画・サインを、すべて消します。\n元にもどせません。よろしいですか？')) return;
+  if(!confirm('本当によろしいですか？\n先に「JSONで保存」で控えをお取りください。')) return;
+  localStorage.removeItem(STORE_KEY);
+  state = load(); save(); redrawEverything();
+  toast('消しました');
+});
+
 function renderCal(){
   const [y,m] = state.calMonth.split('-').map(Number);
   $('#calTitle').textContent = y+'年'+m+'月';
@@ -1249,6 +1322,13 @@ function planEntriesFor(ds, dir){
     })
   })).filter(a=>a.stops.length);
 }
+/* ルートの端（事業所の発着）を出す。おむかえルート帖と同じ形。 */
+function termHtml(no, time, name){
+  return '<div class="stop term"><div class="no">'+no+'</div>'
+    +'<div class="bd">'+(time?'<span class="t">'+esc(time)+'</span> ':'')
+    +'<span class="s">'+esc(name)+'</span></div></div>';
+}
+
 function renderRoute(){
   const ds = state.selDate;
   $('#routeTitle').textContent = jpDate(ds)+' の配車とルート';
@@ -1266,60 +1346,93 @@ function renderRoute(){
     if(rec[dir].planSig !== entSig(ds, dir)){
       html += '<div class="warnbox">⚠ 配車したあとに内容が変わっています。計画タブで配車し直してください。</div>';
     }
+    const facName = state.facility.name || '事業所';
+    const geoMissing = !facPoint() || assigns.some(a=>a.stops.some(id=>{
+      const q = dir==='pick' ? schoolById(id) : kidById(id);
+      return !hasGeo(q);
+    }));
     assigns.forEach(a=>{
       const v = vehicleById(a.vid); if(!v) return;
       const sim = simulateVehicle(ds, dir, a.stops);
       const over = sim.maxLoad > v.cap;
-      html += '<div class="veh" data-dir="'+dir+'" data-vid="'+a.vid+'">'
-        +'<div class="vh">🚐 '+esc(v.name)
-        +'<span class="sub">乗車 '+sim.maxLoad+'/'+v.cap+'名'
-        +(sim.firstDepart!=null?'｜出発 '+toHM(sim.firstDepart)+'〜帰着 '+toHM(sim.returnAt):'')+'</span></div>';
+
+      html += '<div class="vwrap" data-dir="'+dir+'" data-vid="'+a.vid+'">';
+      html += '<div class="vhead"><span class="vn">🚐 '+esc(v.name)+'</span>'
+        +'<span class="vc">定員'+v.cap+'名・最大乗車'+sim.maxLoad+'名'+(over?' ⚠定員超過':'')+'</span>'
+        +'<span class="vd'+(sim.maxDelay>0?' late':'')+'">'
+        +(sim.maxDelay>0?'最大 +'+Math.round(sim.maxDelay)+'分':'遅れなし')+'</span></div>';
+      html += '<div class="vbody">';
+      html += '<div class="vtime">出発 '+(sim.firstDepart!=null?toHM(sim.firstDepart):'--:--')
+        +' 〜 帰着 '+(sim.returnAt!=null?toHM(sim.returnAt):'--:--')+'（自動計算・見込）</div>';
       if(over){
-        html += '<div class="warnbox" style="margin:8px 9px 0;">⚠ 定員を超えています。別の車に移してください。</div>';
+        html += '<div class="warnbox">⚠ 定員を超えています。別の車に移してください。</div>';
       }
-      html += '<div class="stops">';
-      a.stops.forEach((id, i)=>{
-        const e = (state.days[ds][dir].ent[id])||{};
-        const st = sim.stops.find(s=>s.id===id);
-        const extra = dir==='pick'
-          ? (' '+(st?st.num:e.num||0)+'名'+((e.memo)?'（'+esc(e.memo)+'）':''))
-          : ((e.note)?'（'+esc(e.note)+'）':'');
-        html += '<div class="stop">'
-          +'<span class="no">'+(MARU[i]||('('+(i+1)+')'))+'</span>'
-          +'<span class="snm">'+esc(stopName(dir, id))+extra+'</span>'
-          +'<span class="tim'+(st && st.delay>0?' late':'')+'">'+(st?('予定'+toHM(st.t)+'→着'+toHM(st.arrive)+(st.delay>0?'（+'+st.delay+'分）':'')):'')+'</span>'
-          +'<span class="ops">'
-          +'<button data-mv="up" data-id="'+id+'">▲</button>'
-          +'<button data-mv="dn" data-id="'+id+'">▼</button>'
-          + vehSelect(a.vid, id)
-          +'</span>'
-          +'</div>';
+
+      let prevTrip = 0;
+      sim.stops.forEach((st, idx)=>{
+        const e = (state.days[ds][dir].ent[st.id])||{};
+        /* 便の切れ目に、事業所の発着を挟む */
+        if(st.trip !== prevTrip){
+          if(prevTrip > 0){
+            const trPrev = sim.trips[prevTrip-1];
+            html += '<div class="leg"><span>┋</span></div>';
+            html += termHtml('戻', trPrev.return!=null?toHM(trPrev.return):'',
+              facName + (dir==='pick' ? ' に帰着・降車（見込）' : ' に戻る・次の子をお乗せ（見込）'));
+          }
+          const trNew = sim.trips[st.trip-1];
+          html += termHtml('発', trNew.depart!=null?toHM(trNew.depart):'',
+            facName+' を出発'+(sim.trips.length>1?'（'+st.trip+'便目・見込）':'（見込）'));
+          prevTrip = st.trip;
+        }
+        html += '<div class="leg"><span>┋</span></div>';
+        const late = st.delay >= 0.5;
+        const memo = dir==='pick' ? (e.memo||'') : (e.note||'');
+        html += '<div class="stop" data-id="'+st.id+'">'
+          +'<div class="no">'+(idx+1)+'</div>'
+          +'<div class="bd">'
+          +'<span class="t">'+toHM(st.t)+'</span> '
+          +'<span class="s">'+esc(stopName(dir, st.id))+'</span>'
+          +(dir==='pick'?' <span class="eta">'+st.num+'名</span>':'')
+          +'<div class="eta">'+(dir==='pick'?'到着見込 ':'お送り見込 ')+toHM(st.arrive)
+          +(late?' <b class="late">＋'+Math.round(st.delay)+'分遅れ</b>':'')+'</div>'
+          +(memo?'<div class="m">'+esc(memo)+'</div>':'')
+          +((st.load>v.cap)?'<div class="warn">⚠ ここで定員を超えます（'+st.load+'名）</div>':'')
+          +'</div>'
+          +'<div class="mv">'
+          +'<div class="ud">'
+          +'<button data-mv="up" data-id="'+st.id+'"'+(idx===0?' disabled':'')+'>▲</button>'
+          +'<button data-mv="dn" data-id="'+st.id+'"'+(idx===sim.stops.length-1?' disabled':'')+'>▼</button>'
+          +'</div>'
+          +(activeVehicles().length>1?vehSelect(a.vid, st.id):'')
+          +'</div></div>';
       });
-      html += '</div>'
-        +'<div class="row" style="padding:0 9px 9px;">'
-        +'<button class="small" data-map="1">🗺 Googleマップでルート表示</button>'
+      html += '<div class="leg"><span>┋</span></div>';
+      html += termHtml('着', sim.returnAt!=null?toHM(sim.returnAt):'', facName+' に帰着（見込）');
+
+      const urls = buildMapUrls(dir, a.stops);
+      urls.forEach((u,k)=>{
+        const lbl = urls.length>1 ? esc(v.name)+' のルートを開く（'+(k+1)+'／'+urls.length+'）'
+                                  : esc(v.name)+' のルートを開く';
+        html += '<a class="mapbtn" href="'+esc(u)+'" target="_blank" rel="noopener">🗺 '+lbl+'</a>';
+      });
+      html += '<div class="vfoot">見込みは目安です。乗降'+state.settings.board+'分／'
+        +(geoMissing?'座標なし区間 '+state.settings.leg+'分':'平均時速'+state.settings.speed+'km')+'で計算。</div>';
+      html += '<div class="row" style="margin-top:6px;">'
         +'<button class="small ghost" data-copytext="1">📋 予定表をコピー</button>'
         +(navigator.share?'<button class="small ghost" data-share="1">📤 共有（LINEなど）</button>':'')
-        +'</div>'
         +'</div>';
+      html += '</div></div>';
     });
   });
   $('#routeArea').innerHTML = html || '<p class="note">まだ配車がありません。</p>';
 
-  document.querySelectorAll('#routeArea .veh').forEach(box=>{
+  document.querySelectorAll('#routeArea .vwrap').forEach(box=>{
     const dir = box.dataset.dir, vid = box.dataset.vid;
     box.querySelectorAll('button[data-mv]').forEach(b=>{
       b.addEventListener('click', ()=>moveStop(ds, dir, vid, b.dataset.id, b.dataset.mv==='up'?-1:1));
     });
     box.querySelectorAll('select[data-tovid]').forEach(sel=>{
       sel.addEventListener('change', ()=>moveToVehicle(ds, dir, vid, sel.dataset.id, sel.value));
-    });
-    const mapBtn = box.querySelector('button[data-map]');
-    if(mapBtn) mapBtn.addEventListener('click', ()=>{
-      const a = planEntriesFor(ds, dir).find(x=>x.vid===vid);
-      if(!a) return;
-      const urls = buildMapUrls(dir, a.stops);
-      urls.forEach((u,i)=>setTimeout(()=>window.open(u,'_blank'), i*400));
     });
     const cpBtn = box.querySelector('button[data-copytext]');
     if(cpBtn) cpBtn.addEventListener('click', ()=>{
